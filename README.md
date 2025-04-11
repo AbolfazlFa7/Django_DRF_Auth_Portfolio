@@ -40,6 +40,8 @@
 
 # نحوه نصب و راه‌اندازی
 
+<div dir="ltr">
+  
 ```
 mkdir portfolio
 ```
@@ -60,13 +62,15 @@ python manage.py migrate
 ```
 python manage.py runserver
 ```
+</div>
+
 ---
 
 با رفتن به این آدرس به مستندات API میتوانید دسترسی پیدا کنید
-    <div dir="ltr">
-    - http://127.0.0.1:8000/api/schema/ui/
-    - http://127.0.0.1:8000/api/schema/redoc/
-    </div>
+<div dir="ltr">
+- http://127.0.0.1:8000/api/schema/ui/ <br>
+- http://127.0.0.1:8000/api/schema/redoc/
+</div>
 
 ---
 </div>
