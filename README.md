@@ -3,6 +3,9 @@
 ## مقدمه
 این پروژه یک API احراز هویت مبتنی بر **Django REST Framework** است که برای نمونه‌سازی (portfolio) طراحی شده است. هدف اصلی این پروژه، ارائه یک سیستم احراز هویت امن با قابلیت‌هایی مانند ثبت‌نام، ورود، خروج، و تأیید هویت دو مرحله‌ای (OTP) از طریق ایمیل یا شماره تلفن است. این پروژه با استفاده از **JWT** (JSON Web Token) و امکانات پیشرفته مانند **throttling**، **pagination** و مستندسازی با **drf-spectacular** پیاده‌سازی شده است.
 
+<img src="README files/img/schema_ui.png" width="100%" height="100%">
+<img src="README files/img/schema_redoc.png" width="100%" height="100%">
+
 ---
 
 ## ویژگی‌ها
