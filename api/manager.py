@@ -14,7 +14,6 @@ class UserManager(UserManager):
 
         if not all([email, password]):
             raise ValidationError('Enter email and password Correctly')
-
         if validator:
             email = normalize_email(email)
             password = validate_password(password)

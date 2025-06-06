@@ -27,11 +27,8 @@ class UsersSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        if User.objects.filter(email=validated_data.get('email')).exists():
-            return Response({'status': 'User Already Exists'}, status=409)
-        else:
-            user = User.objects.create_user(**validated_data, validator=False)
-            return user
+        user = User.objects.create_user(**validated_data, validator=False)
+        return user
 
     def validate_password(self, value):
         return validate_password(value, )

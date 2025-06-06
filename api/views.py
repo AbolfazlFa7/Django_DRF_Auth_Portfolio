@@ -1,5 +1,3 @@
-from utils import email_service
-from utils import phone_service
 from django.contrib.auth import get_user_model
 from rest_framework import generics
 from rest_framework import permissions
@@ -9,19 +7,17 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
 from .permissions import IsOwnerOrAdmin, IsAnonymous
-from .models import VerificationCode
 from . import serializers
 from rest_framework.throttling import UserRateThrottle
-from django.core.cache import cache
+
+
+User = get_user_model()
 
 
 class OTPSendThrottle(UserRateThrottle):
     def parse_rate(self, rate):
         rate = (1, 120)
         return rate
-
-
-User = get_user_model()
 
 
 class TokenObtainPairView(TokenObtainPairView):
@@ -160,38 +156,9 @@ class SendOTPApiView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         email_or_phone = request.data.get('email_or_phone')
 
-        if email_or_phone == 'email':
-            value = request.user.email
-        else:
-            value = request.user.phone
-            if value == None:
-                return Response({'status': 'User Phone Number has not submited'}, status=status.HTTP_400_BAD_REQUEST)
-
-        code = VerificationCode.generate_for_user(request.user)
-        if not code:
-            return Response({'status': 'Code already has been sented'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if email_or_phone == 'email':
-            user = User.objects.filter(email=value).first()
-            if user:
-                if not user.is_verified:
-                    email_service.send_verification_code(value, code)
-                else:
-                    return Response({'status': 'User already is verified'}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response({'status': 'User Not Exists'}, status=status.HTTP_400_BAD_REQUEST)
-
-        elif email_or_phone == 'phone':
-            user = User.objects.filter(phone=value).first()
-            if user:
-                if not user.is_verified:
-                    phone_service.send_verification_code(value, code)
-                else:
-                    return Response({'status': 'User already is verified'}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response({'status': 'User Not Exists'}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response({'status': 'code has been sent to user'}, status=status.HTTP_200_OK)
+        response_data, status_code = OTPService.send_otp(
+            request.user, email_or_phone)
+        return Response(response_data, status=status_code)
 
 
 class VerifyOTPApiView(generics.GenericAPIView):
@@ -247,23 +214,8 @@ class VerifyOTPApiView(generics.GenericAPIView):
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        if cache.get(request.user.email):
-            return Response({'status': 'User has Verified already'}, status=status.HTTP_400_BAD_REQUEST)
-
         code = request.data.get('code')
-        verification_code = VerificationCode.objects.filter(
-            user=request.user).first()
 
-        if verification_code:
-            verify_code = verification_code.verify(code)
-            if verify_code:
-                if request.user.is_verified:
-                    cache.set(request.user.email,
-                              'User has Verified already', 60*60)
-                    return Response({'status': 'User has Verified already'}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    request.user.is_verified = True
-                    request.user.save()
-                    return Response({'status': 'User has Verified'}, status=status.HTTP_200_OK)
-        return Response({'status': 'Invalid Code'})
+        # Use OTPService to verify the OTP
+        response_data, status_code = OTPService.verify_otp(request.user, code)
+        return Response(response_data, status=status_code)
