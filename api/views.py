@@ -66,6 +66,19 @@ class LogoutApiView(generics.GenericAPIView):
                     )
                 ]
             ),
+            400: OpenApiResponse(
+                response=dict,
+                description="Token is Invalid",
+                examples=[
+                    OpenApiExample(
+                        name="Success Response",
+                        value={
+                            "status": "Token is Invalid"
+                        },
+                        status_codes=[400]
+                    )
+                ]
+            ),
             403: OpenApiResponse(
                 response=dict,
                 description="User must be logged in",
@@ -83,9 +96,16 @@ class LogoutApiView(generics.GenericAPIView):
     )
     def post(self, request):
         refresh_token = request.data.get('refresh')
-        refresh_token = RefreshToken(refresh_token)
-        refresh_token.blacklist()
-        return Response({'status': 'You have logged out'}, status=status.HTTP_200_OK)
+        try:
+            refresh_token = RefreshToken(refresh_token)
+            refresh_token.blacklist()
+            response = {'status': 'You have logged out'}
+            status_code = status.HTTP_200_OK
+        except Exception as e:
+            response = {'status': 'Token is Invalid'}
+            status_code = status.HTTP_400_BAD_REQUEST
+
+        return Response(response, status=status_code)
 
 
 class SendOTPApiView(generics.GenericAPIView):
